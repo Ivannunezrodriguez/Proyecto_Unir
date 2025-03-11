@@ -1,0 +1,48 @@
+@startuml
+class User {
+  + id_user: UUID
+  + name: String
+  + email: String
+  + password: String
+  + registration_date: Date
+}
+
+class VideoGame {
+  + id_videogame: UUID
+  + title: String
+  + description: String
+  + release_date: Date
+  + developer: String
+  + platform: String
+  + rating: Float
+}
+
+class Category {
+  + id_category: UUID
+  + name: String
+}
+
+class Review {
+  + id_review: UUID
+  + id_user: UUID
+  + id_videogame: UUID
+  + comment: String
+  + rating: Float
+  + date: Date
+}
+
+class Purchase {
+  + id_purchase: UUID
+  + id_user: UUID
+  + id_videogame: UUID
+  + store: String
+  + price: Float
+  + link: String
+}
+
+User "1" -- "n" Review
+User "1" -- "n" Purchase
+VideoGame "1" -- "n" Review
+VideoGame "n" -- "n" Category
+VideoGame "1" -- "n" Purchase
+@enduml

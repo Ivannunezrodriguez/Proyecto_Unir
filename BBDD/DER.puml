@@ -1,0 +1,53 @@
+@startuml
+entity User {
+  * id_user : UUID
+  --
+  name : String
+  email : String
+  password : String
+  registration_date : Date
+}
+
+entity VideoGame {
+  * id_videogame : UUID
+  --
+  title : String
+  description : String
+  release_date : Date
+  developer : String
+  platform : String
+  rating : Float
+}
+
+entity Category {
+  * id_category : UUID
+  --
+  name : String
+}
+
+entity Review {
+  * id_review : UUID
+  --
+  id_user : UUID
+  id_videogame : UUID
+  comment : String
+  rating : Float
+  date : Date
+}
+
+entity Purchase {
+  * id_purchase : UUID
+  --
+  id_user : UUID
+  id_videogame : UUID
+  store : String
+  price : Float
+  link : String
+}
+
+User ||--o{ Review
+User ||--o{ Purchase
+VideoGame ||--o{ Review
+VideoGame }o--o{ Category
+VideoGame ||--o{ Purchase
+@enduml
