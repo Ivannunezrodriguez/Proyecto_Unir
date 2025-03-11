@@ -3,8 +3,8 @@
 # **ANTEPROYECTO**
 ## **Catálogo Inteligente de Videojuegos con IA y Recomendaciones Personalizadas**
 
-**Plataformas:** Web  
-**Tecnologías:** ASP.NET Core (C#) (Backend), Angular (TypeScript) (Frontend), PostgreSQL y MongoDB (Base de Datos), Docker (Despliegue), Oracle Cloud VPS (Servidor)  
+### **Plataformas:** Web  
+### **Tecnologías:** ASP.NET Core (C#) (Backend), Angular (TypeScript) (Frontend), PostgreSQL y MongoDB (Base de Datos), Docker (Despliegue), Oracle Cloud VPS (Servidor)  
 
 ---
 
@@ -115,4 +115,3 @@ Se utilizará **metodología ágil (Scrum/Kanban)** con entregas incrementales:
 Este proyecto ofrecerá a los jugadores una herramienta completa para explorar el mundo de los videojuegos, mejorando su experiencia con recomendaciones inteligentes y contenido relevante.
 
 ---
-
