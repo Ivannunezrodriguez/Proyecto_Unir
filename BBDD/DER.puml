@@ -1,53 +1,78 @@
 @startuml
-entity User {
-  * id_user : UUID
-  --
-  name : String
-  email : String
-  password : String
-  registration_date : Date
+!define UUID STRING
+
+entity "User" {
+    * id_user : UUID
+    --
+    name : STRING
+    email : STRING
+    password : STRING
+    registration_date : DATE
 }
 
-entity VideoGame {
-  * id_videogame : UUID
-  --
-  title : String
-  description : String
-  release_date : Date
-  developer : String
-  platform : String
-  rating : Float
+entity "VideoGame" {
+    * id_videogame : UUID
+    --
+    title : STRING
+    description : STRING
+    release_date : DATE
+    developer : STRING
+    platform : STRING
+    rating : FLOAT
 }
 
-entity Category {
-  * id_category : UUID
-  --
-  name : String
+entity "Category" {
+    * id_category : UUID
+    --
+    name : STRING
 }
 
-entity Review {
-  * id_review : UUID
-  --
-  id_user : UUID
-  id_videogame : UUID
-  comment : String
-  rating : Float
-  date : Date
+entity "Review" {
+    * id_review : UUID
+    --
+    id_user : UUID
+    id_videogame : UUID
+    comment : STRING
+    rating : FLOAT
+    date : DATE
 }
 
-entity Purchase {
-  * id_purchase : UUID
-  --
-  id_user : UUID
-  id_videogame : UUID
-  store : String
-  price : Float
-  link : String
+entity "Recommendation" {
+    * id_recommendation : UUID
+    --
+    id_user : UUID
+    id_videogame : UUID
+    reason : STRING
+    date : DATE
 }
 
-User ||--o{ Review
-User ||--o{ Purchase
-VideoGame ||--o{ Review
-VideoGame }o--o{ Category
-VideoGame ||--o{ Purchase
+entity "Purchase" {
+    * id_purchase : UUID
+    --
+    id_user : UUID
+    id_videogame : UUID
+    store : STRING
+    price : FLOAT
+    link : STRING
+}
+
+entity "AI_Analysis" {
+    * id_analysis : UUID
+    --
+    id_user : UUID
+    id_videogame : UUID
+    ai_score : FLOAT
+    generated_at : DATE
+}
+
+' Relaciones
+User ||--o{ Review : escribe
+User ||--o{ Recommendation : recibe
+User ||--o{ Purchase : compra
+VideoGame ||--o{ Review : tiene
+VideoGame ||--o{ Recommendation : es_recomendado
+VideoGame ||--o{ Purchase : se_vende
+VideoGame ||--o{ AI_Analysis : es_analizado
+Category ||--o{ VideoGame : clasifica
+
 @enduml

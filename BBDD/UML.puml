@@ -1,48 +1,76 @@
 @startuml
+
 class User {
-  + id_user: UUID
-  + name: String
-  + email: String
-  + password: String
-  + registration_date: Date
+    + UUID id_user
+    + STRING name
+    + STRING email
+    + STRING password
+    + DATE registration_date
+    --
+    + writeReview()
+    + receiveRecommendation()
 }
 
 class VideoGame {
-  + id_videogame: UUID
-  + title: String
-  + description: String
-  + release_date: Date
-  + developer: String
-  + platform: String
-  + rating: Float
+    + UUID id_videogame
+    + STRING title
+    + STRING description
+    + DATE release_date
+    + STRING developer
+    + STRING platform
+    + FLOAT rating
+    --
+    + getRecommendations()
+    + analyzeAI()
 }
 
 class Category {
-  + id_category: UUID
-  + name: String
+    + UUID id_category
+    + STRING name
 }
 
 class Review {
-  + id_review: UUID
-  + id_user: UUID
-  + id_videogame: UUID
-  + comment: String
-  + rating: Float
-  + date: Date
+    + UUID id_review
+    + UUID id_user
+    + UUID id_videogame
+    + STRING comment
+    + FLOAT rating
+    + DATE date
+}
+
+class Recommendation {
+    + UUID id_recommendation
+    + UUID id_user
+    + UUID id_videogame
+    + STRING reason
+    + DATE date
 }
 
 class Purchase {
-  + id_purchase: UUID
-  + id_user: UUID
-  + id_videogame: UUID
-  + store: String
-  + price: Float
-  + link: String
+    + UUID id_purchase
+    + UUID id_user
+    + UUID id_videogame
+    + STRING store
+    + FLOAT price
+    + STRING link
 }
 
-User "1" -- "n" Review
-User "1" -- "n" Purchase
-VideoGame "1" -- "n" Review
-VideoGame "n" -- "n" Category
-VideoGame "1" -- "n" Purchase
+class AI_Analysis {
+    + UUID id_analysis
+    + UUID id_user
+    + UUID id_videogame
+    + FLOAT ai_score
+    + DATE generated_at
+}
+
+' Relaciones
+User "1" -- "0..*" Review : escribe
+User "1" -- "0..*" Recommendation : recibe
+User "1" -- "0..*" Purchase : compra
+VideoGame "1" -- "0..*" Review : tiene
+VideoGame "1" -- "0..*" Recommendation : recomendado
+VideoGame "1" -- "0..*" Purchase : vendido
+VideoGame "1" -- "0..*" AI_Analysis : analizado
+Category "1" -- "0..*" VideoGame : clasifica
+
 @enduml

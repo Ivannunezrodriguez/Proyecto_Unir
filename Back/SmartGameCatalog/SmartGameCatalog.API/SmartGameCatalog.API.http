@@ -1,0 +1,6 @@
+@SmartGameCatalog.API_HostAddress = http://localhost:5267
+
+GET {{SmartGameCatalog.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
