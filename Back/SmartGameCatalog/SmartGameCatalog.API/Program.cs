@@ -1,6 +1,7 @@
 using SmartGameCatalog.API.Data;
 using SmartGameCatalog.API.Repositories;
 using Microsoft.OpenApi.Models;
+using SmartGameCatalog.API.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,6 +17,8 @@ builder.Services.AddSingleton<ReviewRepository>();
 builder.Services.AddSingleton<RecommendationRepository>();
 builder.Services.AddSingleton<PurchaseRepository>();
 builder.Services.AddSingleton<AIAnalysisRepository>();
+builder.Services.AddHttpClient<IGDBService>();
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {

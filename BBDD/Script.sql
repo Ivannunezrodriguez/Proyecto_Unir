@@ -74,3 +74,11 @@ CREATE TABLE AI_Analysis (
     FOREIGN KEY (id_user) REFERENCES Users(id_user) ON DELETE CASCADE,
     FOREIGN KEY (id_videogame) REFERENCES VideoGame(id_videogame) ON DELETE CASCADE
 );
+CREATE TABLE PlayedGames (
+    id_played_game UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    id_user UUID NOT NULL,
+    id_videogame UUID NOT NULL,
+    played_at TIMESTAMP DEFAULT NOW(),
+    FOREIGN KEY (id_user) REFERENCES Users(id_user) ON DELETE CASCADE,
+    FOREIGN KEY (id_videogame) REFERENCES VideoGames(id_videogame) ON DELETE CASCADE
+);
