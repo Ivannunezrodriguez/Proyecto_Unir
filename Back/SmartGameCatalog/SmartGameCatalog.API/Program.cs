@@ -18,6 +18,10 @@ builder.Services.AddSingleton<RecommendationRepository>();
 builder.Services.AddSingleton<PurchaseRepository>();
 builder.Services.AddSingleton<AIAnalysisRepository>();
 builder.Services.AddHttpClient<IGDBService>();
+builder.Services.AddSingleton<PlayedGamesRepository>();
+builder.Services.AddHttpClient<WeaviateService>();
+
+
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>

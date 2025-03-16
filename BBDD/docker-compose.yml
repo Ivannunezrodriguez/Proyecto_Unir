@@ -26,5 +26,25 @@ services:
     depends_on:
       - postgres
 
+  weaviate:
+    image: semitechnologies/weaviate:latest
+    container_name: smartgamecatalog_weaviate
+    restart: always
+    environment:
+      AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: "true"
+      PERSISTENCE_DATA_PATH: "/var/lib/weaviate"
+      QUERY_DEFAULTS_LIMIT: "10"
+      ENABLE_MODULES: "text2vec-huggingface"
+      DEFAULT_VECTORIZER_MODULE: "text2vec-huggingface"
+      HUGGINGFACE_APIKEY: "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"  # 🔑 Usa esta variable en vez de HUGGINGFACE_INFERENCE_API
+      HUGGINGFACE_EMBEDDINGS_MODEL: "sentence-transformers/all-MiniLM-L6-v2"
+    ports:
+      - "8080:8080"
+    volumes:
+      - weaviate_data:/var/lib/weaviate
+
+
+
 volumes:
   postgres_data:
+  weaviate_data:

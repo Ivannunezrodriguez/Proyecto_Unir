@@ -1,8 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
-using SmartGameCatalog.API.Models;
-using SmartGameCatalog.API.Repositories;
+using SmartGameCatalog.API.Services;
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace SmartGameCatalog.API.Controllers
@@ -11,27 +9,28 @@ namespace SmartGameCatalog.API.Controllers
     [ApiController]
     public class RecommendationsController : ControllerBase
     {
-        private readonly RecommendationRepository _repository;
+        private readonly WeaviateService _weaviateService;
 
-        public RecommendationsController(RecommendationRepository repository)
+        public RecommendationsController(WeaviateService weaviateService)
         {
-            _repository = repository;
+            _weaviateService = weaviateService;
         }
 
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Recommendation>>> GetRecommendations()
+        [HttpGet("{userId}")]
+        public async Task<IActionResult> GetRecommendations(Guid userId)
         {
-            var recommendations = await _repository.GetRecommendationsAsync();
+  var recommendations = await _weaviateService.GetRecommendationsAsync(userId.ToString());
+
             return Ok(recommendations);
         }
+   [HttpGet("recommendations")]
+public async Task<IActionResult> GetRecommendations([FromQuery] string searchQuery)
+{
+    var recommendations = await _weaviateService.GetRecommendationsAsync(searchQuery);
+    return Ok(recommendations);
+}
 
-        [HttpPost]
-        public async Task<ActionResult> CreateRecommendation(Recommendation recommendation)
-        {
-            recommendation.Id_Recommendation = Guid.NewGuid();
-            recommendation.Date = DateTime.UtcNow;
-            await _repository.AddRecommendationAsync(recommendation);
-            return CreatedAtAction(nameof(GetRecommendations), new { id = recommendation.Id_Recommendation }, recommendation);
-        }
+
+
     }
 }

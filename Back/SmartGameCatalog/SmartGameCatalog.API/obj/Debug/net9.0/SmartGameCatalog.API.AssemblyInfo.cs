@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("SmartGameCatalog.API")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+8d8c2d49148976053bb91afc041520dea8a12b24")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+143e3a90717eec19762337a9af166970a6e03f89")]
 [assembly: System.Reflection.AssemblyProductAttribute("SmartGameCatalog.API")]
 [assembly: System.Reflection.AssemblyTitleAttribute("SmartGameCatalog.API")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
