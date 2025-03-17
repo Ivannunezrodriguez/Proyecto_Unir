@@ -11,22 +11,30 @@ CREATE TABLE users (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- 📌 Crear tabla de Categorías de Videojuegos
+CREATE TABLE categories (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    name VARCHAR(100) NOT NULL UNIQUE
+);
+
 -- 📌 Crear tabla de Videojuegos
 CREATE TABLE videogames (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
     description TEXT,
-    genres TEXT[],
-    platforms TEXT[],
     release_date DATE,
-    cover_url TEXT
+    cover_url TEXT,
+    developer VARCHAR(255) NOT NULL,
+    platform VARCHAR(255) NOT NULL,
+    rating FLOAT CHECK (rating BETWEEN 0 AND 10),
+    category_id UUID REFERENCES categories(id) ON DELETE SET NULL
 );
 
 -- 📌 Crear tabla de Juegos Jugados (played_games)
 CREATE TABLE played_games (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-    game_id UUID REFERENCES videogames(id) ON DELETE CASCADE,
+    videogame_id UUID REFERENCES videogames(id) ON DELETE CASCADE,
     played_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -34,7 +42,7 @@ CREATE TABLE played_games (
 CREATE TABLE reviews (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-    game_id UUID REFERENCES videogames(id) ON DELETE CASCADE,
+    videogame_id UUID REFERENCES videogames(id) ON DELETE CASCADE,
     rating INT CHECK (rating BETWEEN 1 AND 10),
     comment TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -44,15 +52,17 @@ CREATE TABLE reviews (
 CREATE TABLE purchases (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-    game_id UUID REFERENCES videogames(id) ON DELETE CASCADE,
-    purchase_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    videogame_id UUID REFERENCES videogames(id) ON DELETE CASCADE,
+    purchase_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    store VARCHAR(255) NOT NULL,
+    price FLOAT CHECK (price >= 0)
 );
 
 -- 📌 Crear tabla de Recomendaciones
 CREATE TABLE recommendations (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-    recommended_game_id UUID REFERENCES videogames(id) ON DELETE CASCADE,
+    recommended_videogame_id UUID REFERENCES videogames(id) ON DELETE CASCADE,
     reason TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -61,19 +71,35 @@ CREATE TABLE recommendations (
 CREATE TABLE ai_analysis (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-    game_id UUID REFERENCES videogames(id) ON DELETE CASCADE,
-    analysis_result TEXT,
+    videogame_id UUID REFERENCES videogames(id) ON DELETE CASCADE,
+    ai_score FLOAT CHECK (ai_score BETWEEN 0 AND 10),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 📌 Crear tabla intermedia para géneros de videojuegos
+CREATE TABLE videogame_genres (
+    videogame_id UUID REFERENCES videogames(id) ON DELETE CASCADE,
+    genre VARCHAR(100) NOT NULL,
+    PRIMARY KEY (videogame_id, genre)
+);
+
+-- 📌 Crear tabla intermedia para plataformas de videojuegos
+CREATE TABLE videogame_platforms (
+    videogame_id UUID REFERENCES videogames(id) ON DELETE CASCADE,
+    platform VARCHAR(100) NOT NULL,
+    PRIMARY KEY (videogame_id, platform)
 );
 
 -- 📌 Índices para mejorar rendimiento
 CREATE INDEX idx_users_email ON users(email);
 CREATE INDEX idx_videogames_title ON videogames(title);
 CREATE INDEX idx_reviews_user_id ON reviews(user_id);
-CREATE INDEX idx_reviews_game_id ON reviews(game_id);
+CREATE INDEX idx_reviews_videogame_id ON reviews(videogame_id);
 CREATE INDEX idx_purchases_user_id ON purchases(user_id);
-CREATE INDEX idx_purchases_game_id ON purchases(game_id);
+CREATE INDEX idx_purchases_videogame_id ON purchases(videogame_id);
 CREATE INDEX idx_recommendations_user_id ON recommendations(user_id);
-CREATE INDEX idx_recommendations_game_id ON recommendations(recommended_game_id);
+CREATE INDEX idx_recommendations_videogame_id ON recommendations(recommended_videogame_id);
 CREATE INDEX idx_played_games_user_id ON played_games(user_id);
-CREATE INDEX idx_played_games_game_id ON played_games(game_id);
+CREATE INDEX idx_played_games_videogame_id ON played_games(videogame_id);
+CREATE INDEX idx_videogame_genres_videogame_id ON videogame_genres(videogame_id);
+CREATE INDEX idx_videogame_platforms_videogame_id ON videogame_platforms(videogame_id);

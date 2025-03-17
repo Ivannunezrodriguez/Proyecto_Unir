@@ -1,78 +1,69 @@
 @startuml
-!define UUID STRING
-
-entity "User" {
-    * id_user : UUID
-    --
-    name : STRING
-    email : STRING
-    password : STRING
-    registration_date : DATE
+entity User {
+  +Id_User : UUID [PK]
+  +Name : String
+  +Email : String
+  +Password : String
+  +Registration_Date : DateTime
 }
 
-entity "VideoGame" {
-    * id_videogame : UUID
-    --
-    title : STRING
-    description : STRING
-    release_date : DATE
-    developer : STRING
-    platform : STRING
-    rating : FLOAT
+entity VideoGame {
+  +Id_VideoGame : UUID [PK]
+  +Title : String
+  +Description : String
+  +Release_Date : DateTime?
+  +Developer : String
+  +Platform : String
+  +Rating : Float
+  +Id_Category : UUID? [FK]
+  +CoverUrl : String
 }
 
-entity "Category" {
-    * id_category : UUID
-    --
-    name : STRING
+entity Category {
+  +Id_Category : UUID [PK]
+  +Name : String
 }
 
-entity "Review" {
-    * id_review : UUID
-    --
-    id_user : UUID
-    id_videogame : UUID
-    comment : STRING
-    rating : FLOAT
-    date : DATE
+entity Review {
+  +Id_Review : UUID [PK]
+  +Id_User : UUID [FK]
+  +Id_VideoGame : UUID [FK]
+  +Comment : String
+  +Rating : Float
+  +Date : DateTime
 }
 
-entity "Recommendation" {
-    * id_recommendation : UUID
-    --
-    id_user : UUID
-    id_videogame : UUID
-    reason : STRING
-    date : DATE
+entity Recommendation {
+  +Id_Recommendation : UUID [PK]
+  +Id_User : UUID [FK]
+  +Id_VideoGame : UUID [FK]
+  +Reason : String
+  +Date : DateTime
 }
 
-entity "Purchase" {
-    * id_purchase : UUID
-    --
-    id_user : UUID
-    id_videogame : UUID
-    store : STRING
-    price : FLOAT
-    link : STRING
+entity Purchase {
+  +Id_Purchase : UUID [PK]
+  +Id_User : UUID [FK]
+  +Id_VideoGame : UUID [FK]
+  +Store : String
+  +Price : Float
+  +Link : String
 }
 
-entity "AI_Analysis" {
-    * id_analysis : UUID
-    --
-    id_user : UUID
-    id_videogame : UUID
-    ai_score : FLOAT
-    generated_at : DATE
+entity PlayedGame {
+  +Id_Played_Game : UUID [PK]
+  +Id_User : UUID [FK]
+  +Id_VideoGame : UUID [FK]
+  +Played_At : DateTime
 }
 
-' Relaciones
-User ||--o{ Review : escribe
-User ||--o{ Recommendation : recibe
-User ||--o{ Purchase : compra
-VideoGame ||--o{ Review : tiene
-VideoGame ||--o{ Recommendation : es_recomendado
-VideoGame ||--o{ Purchase : se_vende
-VideoGame ||--o{ AI_Analysis : es_analizado
-Category ||--o{ VideoGame : clasifica
-
+User "1" -- "0..*" Review
+User "1" -- "0..*" Recommendation
+User "1" -- "0..*" Purchase
+User "1" -- "0..*" PlayedGame
+Category "1" -- "0..*" VideoGame
+VideoGame "1" -- "0..*" Review
+VideoGame "1" -- "0..*" Recommendation
+VideoGame "1" -- "0..*" Purchase
+VideoGame "1" -- "0..*" PlayedGame
 @enduml

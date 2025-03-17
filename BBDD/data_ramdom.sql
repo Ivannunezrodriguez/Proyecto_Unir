@@ -1,54 +1,52 @@
--- 📌 Insertar Usuarios Aleatorios
-INSERT INTO users (username, email, password_hash) VALUES
-('ivan', 'ivan@example.com', 'hashed_password1'),
-('maria', 'maria@example.com', 'hashed_password2'),
-('carlos', 'carlos@example.com', 'hashed_password3'),
-('laura', 'laura@example.com', 'hashed_password4'),
-('pedro', 'pedro@example.com', 'hashed_password5');
-
--- 📌 Insertar Videojuegos Aleatorios
-INSERT INTO videogames (title, description, genres, platforms, release_date, cover_url) VALUES
-('The Witcher 3', 'An open-world RPG set in a medieval fantasy universe.', ARRAY['RPG', 'Adventure'], ARRAY['PC', 'PS5', 'Xbox'], '2015-05-19', 'https://example.com/witcher3.jpg'),
-('Cyberpunk 2077', 'An open-world RPG set in Night City.', ARRAY['RPG', 'Action'], ARRAY['PC', 'PS5', 'Xbox'], '2020-12-10', 'https://example.com/cyberpunk.jpg'),
-('Dark Souls 3', 'A dark fantasy action RPG.', ARRAY['RPG', 'Action'], ARRAY['PC', 'PS4', 'Xbox'], '2016-04-12', 'https://example.com/darksouls3.jpg'),
-('Horizon Zero Dawn', 'An open-world action RPG with robotic creatures.', ARRAY['RPG', 'Action'], ARRAY['PC', 'PS5'], '2017-02-28', 'https://example.com/horizon.jpg'),
-('Red Dead Redemption 2', 'A western open-world adventure game.', ARRAY['Adventure', 'Action'], ARRAY['PC', 'PS5', 'Xbox'], '2018-10-26', 'https://example.com/rdr2.jpg'),
-('Elden Ring', 'An open-world action RPG developed by FromSoftware.', ARRAY['RPG', 'Action'], ARRAY['PC', 'PS5', 'Xbox'], '2022-02-25', 'https://example.com/eldenring.jpg'),
-('GTA V', 'An open-world crime adventure game.', ARRAY['Action', 'Adventure'], ARRAY['PC', 'PS5', 'Xbox'], '2013-09-17', 'https://example.com/gtav.jpg'),
-('God of War', 'A third-person action RPG based on Norse mythology.', ARRAY['Action', 'RPG'], ARRAY['PS5', 'PC'], '2018-04-20', 'https://example.com/gow.jpg');
-
--- 📌 Insertar Juegos Jugados Aleatoriamente por Usuarios
-INSERT INTO played_games (user_id, game_id, played_at)
+INSERT INTO users (id, username, email, password_hash, created_at)
 VALUES
-((SELECT id FROM users WHERE username='ivan'), (SELECT id FROM videogames WHERE title='The Witcher 3'), NOW() - INTERVAL '10 days'),
-((SELECT id FROM users WHERE username='maria'), (SELECT id FROM videogames WHERE title='Cyberpunk 2077'), NOW() - INTERVAL '5 days'),
-((SELECT id FROM users WHERE username='carlos'), (SELECT id FROM videogames WHERE title='Dark Souls 3'), NOW() - INTERVAL '15 days'),
-((SELECT id FROM users WHERE username='laura'), (SELECT id FROM videogames WHERE title='Horizon Zero Dawn'), NOW() - INTERVAL '3 days'),
-((SELECT id FROM users WHERE username='pedro'), (SELECT id FROM videogames WHERE title='Red Dead Redemption 2'), NOW() - INTERVAL '20 days');
-
--- 📌 Insertar Compras Aleatorias
-INSERT INTO purchases (user_id, game_id, purchase_date)
+    (gen_random_uuid(), 'gamer1', 'gamer1@example.com', 'hashedpassword1', CURRENT_TIMESTAMP),
+    (gen_random_uuid(), 'gamer2', 'gamer2@example.com', 'hashedpassword2', CURRENT_TIMESTAMP),
+    (gen_random_uuid(), 'gamer3', 'gamer3@example.com', 'hashedpassword3', CURRENT_TIMESTAMP);
+INSERT INTO categories (id, name)
 VALUES
-((SELECT id FROM users WHERE username='ivan'), (SELECT id FROM videogames WHERE title='Cyberpunk 2077'), NOW() - INTERVAL '8 days'),
-((SELECT id FROM users WHERE username='maria'), (SELECT id FROM videogames WHERE title='Elden Ring'), NOW() - INTERVAL '12 days'),
-((SELECT id FROM users WHERE username='carlos'), (SELECT id FROM videogames WHERE title='GTA V'), NOW() - INTERVAL '2 days'),
-((SELECT id FROM users WHERE username='laura'), (SELECT id FROM videogames WHERE title='God of War'), NOW() - INTERVAL '6 days'),
-((SELECT id FROM users WHERE username='pedro'), (SELECT id FROM videogames WHERE title='The Witcher 3'), NOW() - INTERVAL '30 days');
-
--- 📌 Insertar Reseñas Aleatorias
-INSERT INTO reviews (user_id, game_id, rating, comment, created_at)
+    (gen_random_uuid(), 'RPG'),
+    (gen_random_uuid(), 'Acción'),
+    (gen_random_uuid(), 'Aventura'),
+    (gen_random_uuid(), 'Mundo Abierto');
+INSERT INTO videogames (id, title, description, release_date, cover_url, developer, platform, rating, category_id)
 VALUES
-((SELECT id FROM users WHERE username='ivan'), (SELECT id FROM videogames WHERE title='The Witcher 3'), 9, 'Increíble RPG con una historia impresionante.', NOW() - INTERVAL '7 days'),
-((SELECT id FROM users WHERE username='maria'), (SELECT id FROM videogames WHERE title='Cyberpunk 2077'), 8, 'Buen juego pero con algunos bugs.', NOW() - INTERVAL '6 days'),
-((SELECT id FROM users WHERE username='carlos'), (SELECT id FROM videogames WHERE title='Dark Souls 3'), 10, 'El mejor Soulsborne hasta la fecha.', NOW() - INTERVAL '15 days'),
-((SELECT id FROM users WHERE username='laura'), (SELECT id FROM videogames WHERE title='Horizon Zero Dawn'), 9, 'Mundo increíble y combate divertido.', NOW() - INTERVAL '3 days'),
-((SELECT id FROM users WHERE username='pedro'), (SELECT id FROM videogames WHERE title='Red Dead Redemption 2'), 10, 'Obra maestra del western.', NOW() - INTERVAL '20 days');
-
--- 📌 Insertar Recomendaciones Basadas en Juegos Jugados
-INSERT INTO recommendations (user_id, recommended_game_id, reason, created_at)
+    (gen_random_uuid(), 'The Witcher 3: Wild Hunt', 'Un RPG de mundo abierto con una gran historia.', '2015-05-19', 'https://example.com/witcher3.jpg', 'CD Projekt Red', 'PC', 9.7, (SELECT id FROM categories WHERE name = 'RPG')),
+    (gen_random_uuid(), 'Cyberpunk 2077', 'Juego de rol y acción ambientado en un futuro distópico.', '2020-12-10', 'https://example.com/cyberpunk2077.jpg', 'CD Projekt Red', 'PC', 8.5, (SELECT id FROM categories WHERE name = 'Acción')),
+    (gen_random_uuid(), 'God of War', 'Kratos se enfrenta a los dioses nórdicos.', '2018-04-20', 'https://example.com/godofwar.jpg', 'Santa Monica Studio', 'PlayStation 4', 9.8, (SELECT id FROM categories WHERE name = 'Acción')),
+    (gen_random_uuid(), 'Red Dead Redemption 2', 'Explora el Salvaje Oeste en un juego de mundo abierto.', '2018-10-26', 'https://example.com/rdr2.jpg', 'Rockstar Games', 'PC', 9.6, (SELECT id FROM categories WHERE name = 'Mundo Abierto')),
+    (gen_random_uuid(), 'Elden Ring', 'Una épica aventura en un mundo de fantasía oscura.', '2022-02-25', 'https://example.com/eldenring.jpg', 'FromSoftware', 'PlayStation 5', 9.5, (SELECT id FROM categories WHERE name = 'RPG'));
+INSERT INTO videogame_genres (videogame_id, genre)
 VALUES
-((SELECT id FROM users WHERE username='ivan'), (SELECT id FROM videogames WHERE title='Elden Ring'), 'Te gustan los RPGs de mundo abierto.', NOW()),
-((SELECT id FROM users WHERE username='maria'), (SELECT id FROM videogames WHERE title='Horizon Zero Dawn'), 'Si te gustó Cyberpunk 2077, prueba este otro juego de mundo abierto.', NOW()),
-((SELECT id FROM users WHERE username='carlos'), (SELECT id FROM videogames WHERE title='God of War'), 'Acción épica y gran narrativa.', NOW()),
-((SELECT id FROM users WHERE username='laura'), (SELECT id FROM videogames WHERE title='GTA V'), 'Si te gustan los juegos de mundo abierto, este es un clásico.', NOW()),
-((SELECT id FROM users WHERE username='pedro'), (SELECT id FROM videogames WHERE title='Dark Souls 3'), 'Te gustan los retos difíciles, prueba este juego.', NOW());
+    ((SELECT id FROM videogames WHERE title = 'The Witcher 3: Wild Hunt'), 'RPG'),
+    ((SELECT id FROM videogames WHERE title = 'Cyberpunk 2077'), 'RPG'),
+    ((SELECT id FROM videogames WHERE title = 'God of War'), 'Acción'),
+    ((SELECT id FROM videogames WHERE title = 'Red Dead Redemption 2'), 'Mundo Abierto'),
+    ((SELECT id FROM videogames WHERE title = 'Elden Ring'), 'RPG');
+INSERT INTO videogame_platforms (videogame_id, platform)
+VALUES
+    ((SELECT id FROM videogames WHERE title = 'The Witcher 3: Wild Hunt'), 'PC'),
+    ((SELECT id FROM videogames WHERE title = 'Cyberpunk 2077'), 'PC'),
+    ((SELECT id FROM videogames WHERE title = 'God of War'), 'PlayStation 4'),
+    ((SELECT id FROM videogames WHERE title = 'Red Dead Redemption 2'), 'PC'),
+    ((SELECT id FROM videogames WHERE title = 'Elden Ring'), 'PlayStation 5');
+INSERT INTO played_games (id, user_id, videogame_id, played_at)
+VALUES
+    (gen_random_uuid(), (SELECT id FROM users WHERE username = 'gamer1'), (SELECT id FROM videogames WHERE title = 'The Witcher 3: Wild Hunt'), CURRENT_TIMESTAMP),
+    (gen_random_uuid(), (SELECT id FROM users WHERE username = 'gamer2'), (SELECT id FROM videogames WHERE title = 'Cyberpunk 2077'), CURRENT_TIMESTAMP);
+INSERT INTO reviews (id, user_id, videogame_id, rating, comment, created_at)
+VALUES
+    (gen_random_uuid(), (SELECT id FROM users WHERE username = 'gamer1'), (SELECT id FROM videogames WHERE title = 'The Witcher 3: Wild Hunt'), 10, 'Un juego increíble con una historia profunda.', CURRENT_TIMESTAMP),
+    (gen_random_uuid(), (SELECT id FROM users WHERE username = 'gamer2'), (SELECT id FROM videogames WHERE title = 'Cyberpunk 2077'), 8, 'Gran mundo, pero algunos bugs al inicio.', CURRENT_TIMESTAMP);
+INSERT INTO purchases (id, user_id, videogame_id, purchase_date, store, price)
+VALUES
+    (gen_random_uuid(), (SELECT id FROM users WHERE username = 'gamer1'), (SELECT id FROM videogames WHERE title = 'The Witcher 3: Wild Hunt'), CURRENT_TIMESTAMP, 'Steam', 29.99),
+    (gen_random_uuid(), (SELECT id FROM users WHERE username = 'gamer2'), (SELECT id FROM videogames WHERE title = 'Cyberpunk 2077'), CURRENT_TIMESTAMP, 'GOG', 39.99);
+INSERT INTO recommendations (id, user_id, recommended_videogame_id, reason, created_at)
+VALUES
+    (gen_random_uuid(), (SELECT id FROM users WHERE username = 'gamer1'), (SELECT id FROM videogames WHERE title = 'Cyberpunk 2077'), 'Si te gustó The Witcher 3, probablemente disfrutes este juego.', CURRENT_TIMESTAMP),
+    (gen_random_uuid(), (SELECT id FROM users WHERE username = 'gamer2'), (SELECT id FROM videogames WHERE title = 'Elden Ring'), 'Si te gustan los desafíos, este es un juego increíble.', CURRENT_TIMESTAMP);
+INSERT INTO ai_analysis (id, user_id, videogame_id, ai_score, created_at)
+VALUES
+    (gen_random_uuid(), (SELECT id FROM users WHERE username = 'gamer1'), (SELECT id FROM videogames WHERE title = 'The Witcher 3: Wild Hunt'), 9.5, CURRENT_TIMESTAMP),
+    (gen_random_uuid(), (SELECT id FROM users WHERE username = 'gamer2'), (SELECT id FROM videogames WHERE title = 'Cyberpunk 2077'), 8.2, CURRENT_TIMESTAMP);
