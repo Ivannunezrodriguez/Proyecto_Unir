@@ -71,90 +71,97 @@ else
         /// </summary>
         /// <param name="query">Término de búsqueda para encontrar videojuegos.</param>
         /// <returns>Lista de videojuegos encontrados.</returns>
-        public async Task<List<VideoGame>> SearchGamesAsync(string query)
+     public async Task<List<VideoGame>> SearchGamesAsync(string query)
+{
+    if (string.IsNullOrEmpty(_accessToken))
+    {
+        await AuthenticateAsync();
+    }
+
+    var clientId = _configuration["IGDB:ClientId"];
+    var request = new HttpRequestMessage(HttpMethod.Post, "https://api.igdb.com/v4/games")
+    {
+        Headers =
         {
-            if (string.IsNullOrEmpty(_accessToken))
-            {
-                await AuthenticateAsync();
-            }
+            { "Client-ID", clientId },
+            { "Authorization", $"Bearer {_accessToken}" }
+        },
+        Content = new StringContent($@"
+            search ""{query}"";
+            fields id, name, cover.url, genres.name, platforms.name, release_dates.human, summary, involved_companies.company.name, rating;
+            limit 10;", System.Text.Encoding.UTF8, "application/json")
+    };
 
-            var clientId = _configuration["IGDB:ClientId"];
-            var request = new HttpRequestMessage(HttpMethod.Post, "https://api.igdb.com/v4/games")
-            {
-                Headers =
-                {
-                    { "Client-ID", clientId },
-                    { "Authorization", $"Bearer {_accessToken}" }
-                },
-                Content = new StringContent($@"
-                    search ""{query}"";
-                    fields name, cover.url, genres.name, platforms.name, release_dates.human, summary, involved_companies.company.name, rating;
-                    limit 10;", System.Text.Encoding.UTF8, "application/json")
-            };
-
-            try
-            {
-                var response = await _httpClient.SendAsync(request);
-                response.EnsureSuccessStatusCode();
-
-                var content = await response.Content.ReadAsStringAsync();
-                using var jsonDoc = JsonDocument.Parse(content);
-
-                var games = new List<VideoGame>();
-
-                foreach (var game in jsonDoc.RootElement.EnumerateArray())
-                {
-                    var coverUrl = game.TryGetProperty("cover", out var cover) && cover.TryGetProperty("url", out var url)
-                        ? "https:" + url.GetString()
-                        : string.Empty;
-
-                  var developer = "Desconocido";
-if (game.TryGetProperty("involved_companies", out var companies) && companies.ValueKind == JsonValueKind.Array)
-{
-    var firstCompany = companies.EnumerateArray().FirstOrDefault();
-    if (firstCompany.ValueKind == JsonValueKind.Object &&
-        firstCompany.TryGetProperty("company", out var company) &&
-        company.TryGetProperty("name", out var companyName))
+    try
     {
-        developer = companyName.GetString() ?? "Desconocido";
-    }
-}
+        var response = await _httpClient.SendAsync(request);
+        response.EnsureSuccessStatusCode();
 
-var platform = "Desconocido";
-if (game.TryGetProperty("platforms", out var platforms) && platforms.ValueKind == JsonValueKind.Array)
-{
-    var firstPlatform = platforms.EnumerateArray().FirstOrDefault();
-    if (firstPlatform.ValueKind == JsonValueKind.String)
-    {
-        platform = firstPlatform.GetString() ?? "Desconocido";
-    }
-}
+        var content = await response.Content.ReadAsStringAsync();
+        using var jsonDoc = JsonDocument.Parse(content);
 
+        var games = new List<VideoGame>();
 
-                    games.Add(new VideoGame
-                    {
-                        Title = game.GetProperty("name").GetString() ?? "Sin título",
-Description = game.TryGetProperty("summary", out var summary) && summary.ValueKind == JsonValueKind.String
-    ? summary.GetString() ?? "Descripción no disponible"
-    : "Descripción no disponible",
-                        CoverUrl = coverUrl,
-                        Developer = developer ?? "Desconocido",
-                        Platform = platform,
-                   Rating = game.TryGetProperty("rating", out var rating) && rating.ValueKind == JsonValueKind.Number
-    ? (float)rating.GetDouble()
-    : 0f,
+        foreach (var game in jsonDoc.RootElement.EnumerateArray())
+        {
+            // 📌 Verificamos si "id" existe y lo convertimos en un GUID válido
+            var id = game.TryGetProperty("id", out var idProp) && idProp.ValueKind == JsonValueKind.Number
+                ? Guid.NewGuid() // Se genera un nuevo ID porque IGDB usa números en lugar de GUID
+                : Guid.Empty;
 
-                        Category_id = null // IGDB no proporciona directamente una categoría equivalente
-                    });
-                }
+            var title = game.TryGetProperty("name", out var titleProp) && titleProp.ValueKind == JsonValueKind.String
+                ? titleProp.GetString() ?? "No Title"
+                : "No Title";
 
-                return games;
-            }
-            catch (Exception ex)
+            var description = game.TryGetProperty("summary", out var summaryProp) && summaryProp.ValueKind == JsonValueKind.String
+                ? summaryProp.GetString() ?? "No description available"
+                : "No description available";
+
+            var coverUrl = game.TryGetProperty("cover", out var cover) &&
+                           cover.TryGetProperty("url", out var url) &&
+                           url.ValueKind == JsonValueKind.String
+                ? "https:" + url.GetString()
+                : "";
+
+            var developer = game.TryGetProperty("involved_companies", out var companies) &&
+                            companies.EnumerateArray().FirstOrDefault().TryGetProperty("company", out var company) &&
+                            company.TryGetProperty("name", out var companyName) &&
+                            companyName.ValueKind == JsonValueKind.String
+                ? companyName.GetString() ?? "Unknown"
+                : "Unknown";
+
+            var platform = game.TryGetProperty("platforms", out var platforms) &&
+                           platforms.EnumerateArray().FirstOrDefault().ValueKind == JsonValueKind.String
+                ? platforms.EnumerateArray().FirstOrDefault().GetString() ?? "Unknown"
+                : "Unknown";
+
+            var rating = game.TryGetProperty("rating", out var ratingProp) && ratingProp.ValueKind == JsonValueKind.Number
+                ? (float)ratingProp.GetDouble()
+                : 0.0f;
+
+            games.Add(new VideoGame
             {
-                Console.WriteLine($"Error en búsqueda de juegos en IGDB: {ex.Message}");
-                return new List<VideoGame>();
-            }
+                Id_VideoGame = id, // 📌 Ahora asignamos un GUID válido en lugar de dejarlo vacío
+                Title = title,
+                Description = description,
+                CoverUrl = coverUrl,
+                Developer = developer,
+                Platform = platform,
+                Rating = rating,
+                Category_id = null // IGDB no proporciona directamente una categoría
+            });
         }
+
+        return games;
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error en búsqueda de juegos en IGDB: {ex.Message}");
+        return new List<VideoGame>();
+    }
+}
+
+
+
     }
 }
