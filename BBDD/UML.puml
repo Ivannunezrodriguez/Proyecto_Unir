@@ -1,69 +1,78 @@
 @startuml
 class User {
-  +Id_User : UUID
-  +Name : String
-  +Email : String
-  +Password : String
-  +Registration_Date : DateTime
+  + user_id: int
+  + username: string
+  + email: string
+  + password: string
+  + role: string
+  + created_at: datetime
+  --
+  + register()
+  + login()
+  + updateProfile()
 }
 
-class VideoGame {
-  +Id_VideoGame : UUID
-  +Title : String
-  +Description : String
-  +Release_Date : DateTime?
-  +Developer : String
-  +Platform : String
-  +Rating : Float
-  +Id_Category : UUID?
-  +CoverUrl : String
+class Game {
+  + game_id: int
+  + igdb_id: int  // Referencia a IGDB
+  --
+  + fetchGameData()
+  + getDetails()
 }
 
-class Category {
-  +Id_Category : UUID
-  +Name : String
+class Rating {
+  + rating_id: int
+  + user_id: int
+  + game_id: int
+  + score: int
+  + review: string
+  + created_at: datetime
+  --
+  + addRating()
+  + updateRating()
+  + deleteRating()
 }
 
-class Review {
-  +Id_Review : UUID
-  +Id_User : UUID
-  +Id_VideoGame : UUID
-  +Comment : String
-  +Rating : Float
-  +Date : DateTime
+class Favorite {
+  + favorite_id: int
+  + user_id: int
+  + game_id: int
+  + added_at: datetime
+  --
+  + addFavorite()
+  + removeFavorite()
 }
 
 class Recommendation {
-  +Id_Recommendation : UUID
-  +Id_User : UUID
-  +Id_VideoGame : UUID
-  +Reason : String
-  +Date : DateTime
+  + recommendation_id: int
+  + user_id: int
+  + game_id: int
+  + reason: string
+  + created_at: datetime
+  --
+  + generateRecommendation()
+  + getRecommendations()
 }
 
-class Purchase {
-  +Id_Purchase : UUID
-  +Id_User : UUID
-  +Id_VideoGame : UUID
-  +Store : String
-  +Price : Float
-  +Link : String
+class GameStatus {
+  + status_id: int
+  + user_id: int
+  + game_id: int
+  + status: string <<ENUM: "Jugado", "Deseado">>
+  + updated_at: datetime
+  --
+  + markAsPlayed()
+  + markAsWished()
+  + updateStatus()
 }
 
-class PlayedGame {
-  +Id_Played_Game : UUID
-  +Id_User : UUID
-  +Id_VideoGame : UUID
-  +Played_At : DateTime
-}
+User "1" -- "N" Rating
+User "1" -- "N" Favorite
+User "1" -- "N" Recommendation
+User "1" -- "N" GameStatus
 
-User "1" -- "0..*" Review
-User "1" -- "0..*" Recommendation
-User "1" -- "0..*" Purchase
-User "1" -- "0..*" PlayedGame
-Category "1" -- "0..*" VideoGame
-VideoGame "1" -- "0..*" Review
-VideoGame "1" -- "0..*" Recommendation
-VideoGame "1" -- "0..*" Purchase
-VideoGame "1" -- "0..*" PlayedGame
+Game "1" -- "N" Rating
+Game "1" -- "N" Favorite
+Game "1" -- "N" Recommendation
+Game "1" -- "N" GameStatus
 @enduml

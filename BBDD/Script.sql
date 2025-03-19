@@ -1,105 +1,65 @@
--- 📌 Crear la base de datos si no existe
+-- Crear la base de datos
 CREATE DATABASE SmartGameDB;
 \c SmartGameDB;
 
--- 📌 Crear tabla de Usuarios
-CREATE TABLE users (
-    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+-- Crear la tabla de Usuarios
+CREATE TABLE Users (
+    user_id SERIAL PRIMARY KEY,
     username VARCHAR(50) NOT NULL UNIQUE,
     email VARCHAR(100) NOT NULL UNIQUE,
-    password_hash TEXT NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    role VARCHAR(20) DEFAULT 'user',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- 📌 Crear tabla de Categorías de Videojuegos
-CREATE TABLE categories (
-    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    name VARCHAR(100) NOT NULL UNIQUE
+-- Crear la tabla de Videojuegos (Referenciando IGDB)
+CREATE TABLE Games (
+    game_id SERIAL PRIMARY KEY,
+    igdb_id INT NOT NULL UNIQUE  -- ID de referencia en IGDB
 );
 
--- 📌 Crear tabla de Videojuegos
-CREATE TABLE videogames (
-    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    title VARCHAR(255) NOT NULL,
-    description TEXT,
-    release_date DATE,
-    cover_url TEXT,
-    developer VARCHAR(255) NOT NULL,
-    platform VARCHAR(255) NOT NULL,
-    rating FLOAT CHECK (rating BETWEEN 0 AND 10),
-    category_id UUID REFERENCES categories(id) ON DELETE SET NULL
-);
-
--- 📌 Crear tabla de Juegos Jugados (played_games)
-CREATE TABLE played_games (
-    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-    videogame_id UUID REFERENCES videogames(id) ON DELETE CASCADE,
-    played_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- 📌 Crear tabla de Reseñas
-CREATE TABLE reviews (
-    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-    videogame_id UUID REFERENCES videogames(id) ON DELETE CASCADE,
-    rating INT CHECK (rating BETWEEN 1 AND 10),
-    comment TEXT,
+-- Crear la tabla de Calificaciones
+CREATE TABLE Ratings (
+    rating_id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL REFERENCES Users(user_id) ON DELETE CASCADE,
+    game_id INT NOT NULL REFERENCES Games(game_id) ON DELETE CASCADE,
+    score INT NOT NULL CHECK (score BETWEEN 1 AND 10),
+    review TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- 📌 Crear tabla de Compras (para juegos adquiridos por el usuario)
-CREATE TABLE purchases (
-    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-    videogame_id UUID REFERENCES videogames(id) ON DELETE CASCADE,
-    purchase_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    store VARCHAR(255) NOT NULL,
-    price FLOAT CHECK (price >= 0)
+-- Crear la tabla de Favoritos
+CREATE TABLE Favorites (
+    favorite_id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL REFERENCES Users(user_id) ON DELETE CASCADE,
+    game_id INT NOT NULL REFERENCES Games(game_id) ON DELETE CASCADE,
+    added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (user_id, game_id)  -- Un usuario no puede agregar un juego dos veces
 );
 
--- 📌 Crear tabla de Recomendaciones
-CREATE TABLE recommendations (
-    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-    recommended_videogame_id UUID REFERENCES videogames(id) ON DELETE CASCADE,
+-- Crear la tabla de Recomendaciones
+CREATE TABLE Recommendations (
+    recommendation_id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL REFERENCES Users(user_id) ON DELETE CASCADE,
+    game_id INT NOT NULL REFERENCES Games(game_id) ON DELETE CASCADE,
     reason TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- 📌 Crear tabla de Análisis con IA
-CREATE TABLE ai_analysis (
-    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-    videogame_id UUID REFERENCES videogames(id) ON DELETE CASCADE,
-    ai_score FLOAT CHECK (ai_score BETWEEN 0 AND 10),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+-- Crear la tabla de Estado del Juego (Jugado / Deseado)
+CREATE TABLE GameStatus (
+    status_id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL REFERENCES Users(user_id) ON DELETE CASCADE,
+    game_id INT NOT NULL REFERENCES Games(game_id) ON DELETE CASCADE,
+    status VARCHAR(20) CHECK (status IN ('Jugado', 'Deseado')),  -- Aumentado a VARCHAR(20) por posibles expansiones futuras
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (user_id, game_id)  -- Evita estados duplicados para el mismo juego y usuario
 );
 
--- 📌 Crear tabla intermedia para géneros de videojuegos
-CREATE TABLE videogame_genres (
-    videogame_id UUID REFERENCES videogames(id) ON DELETE CASCADE,
-    genre VARCHAR(100) NOT NULL,
-    PRIMARY KEY (videogame_id, genre)
-);
-
--- 📌 Crear tabla intermedia para plataformas de videojuegos
-CREATE TABLE videogame_platforms (
-    videogame_id UUID REFERENCES videogames(id) ON DELETE CASCADE,
-    platform VARCHAR(100) NOT NULL,
-    PRIMARY KEY (videogame_id, platform)
-);
-
--- 📌 Índices para mejorar rendimiento
-CREATE INDEX idx_users_email ON users(email);
-CREATE INDEX idx_videogames_title ON videogames(title);
-CREATE INDEX idx_reviews_user_id ON reviews(user_id);
-CREATE INDEX idx_reviews_videogame_id ON reviews(videogame_id);
-CREATE INDEX idx_purchases_user_id ON purchases(user_id);
-CREATE INDEX idx_purchases_videogame_id ON purchases(videogame_id);
-CREATE INDEX idx_recommendations_user_id ON recommendations(user_id);
-CREATE INDEX idx_recommendations_videogame_id ON recommendations(recommended_videogame_id);
-CREATE INDEX idx_played_games_user_id ON played_games(user_id);
-CREATE INDEX idx_played_games_videogame_id ON played_games(videogame_id);
-CREATE INDEX idx_videogame_genres_videogame_id ON videogame_genres(videogame_id);
-CREATE INDEX idx_videogame_platforms_videogame_id ON videogame_platforms(videogame_id);
+-- Índices para mejorar la búsqueda y la eficiencia
+CREATE INDEX idx_users_email ON Users(email);
+CREATE INDEX idx_games_igdb ON Games(igdb_id);
+CREATE INDEX idx_ratings_user ON Ratings(user_id);
+CREATE INDEX idx_favorites_user ON Favorites(user_id);
+CREATE INDEX idx_recommendations_user ON Recommendations(user_id);
+CREATE INDEX idx_gamestatus_user_game ON GameStatus(user_id, game_id);  -- Índice compuesto para búsquedas más eficientes

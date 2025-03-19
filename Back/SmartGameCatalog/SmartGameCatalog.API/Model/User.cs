@@ -1,35 +1,51 @@
 using System;
+using System.ComponentModel.DataAnnotations;
 
-namespace SmartGameCatalog.API.Models
+namespace SmartGameCatalog.API.Model
 {
     /// <summary>
-    /// Representa un usuario dentro del sistema SmartGameCatalog.
+    /// Representa un usuario registrado en la plataforma.
     /// </summary>
     public class User
     {
         /// <summary>
         /// Identificador único del usuario.
         /// </summary>
-        public Guid Id_User { get; set; }
+        [Key]
+        public int UserId { get; set; }
         
         /// <summary>
-        /// Nombre del usuario.
+        /// Nombre de usuario (único y requerido).
         /// </summary>
-        public string Name { get; set; } = string.Empty;
-        
+        [Required]
+        [StringLength(100, ErrorMessage = "El nombre de usuario no puede superar los 100 caracteres.")]
+        public string Username { get; set; } = string.Empty;
+
         /// <summary>
-        /// Dirección de correo electrónico del usuario.
+        /// Correo electrónico del usuario (debe tener formato válido).
         /// </summary>
+        [Required]
+        [EmailAddress(ErrorMessage = "El formato del correo electrónico no es válido.")]
+        [StringLength(100, ErrorMessage = "El correo electrónico no puede superar los 100 caracteres.")]
         public string Email { get; set; } = string.Empty;
         
         /// <summary>
-        /// Contraseña encriptada del usuario.
+        /// Contraseña del usuario (se recomienda encriptarla antes de guardarla).
         /// </summary>
+        [Required]
+        [StringLength(255, ErrorMessage = "La contraseña no puede superar los 255 caracteres.")]
         public string Password { get; set; } = string.Empty;
         
         /// <summary>
-        /// Fecha de registro del usuario en la plataforma.
+        /// Rol del usuario (por defecto es "user").
         /// </summary>
-        public DateTime Registration_Date { get; set; }
+        [Required]
+        [StringLength(20, ErrorMessage = "El rol no puede superar los 20 caracteres.")]
+        public string Role { get; set; } = "user";
+        
+        /// <summary>
+        /// Fecha de creación de la cuenta del usuario.
+        /// </summary>
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }

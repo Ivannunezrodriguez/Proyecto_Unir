@@ -1,176 +1,80 @@
 using System;
-using System.Collections.Generic;
 using System.Net.Http;
-using System.Text;
 using System.Text.Json;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
-using SmartGameCatalog.API.Models;
 
 namespace SmartGameCatalog.API.Services
 {
     /// <summary>
-    /// Servicio para la comunicación con la base de datos vectorial Weaviate.
+    /// Servicio para obtener recomendaciones de videojuegos utilizando Weaviate.
     /// </summary>
     public class WeaviateService
     {
         private readonly HttpClient _httpClient;
-        private readonly IConfiguration _configuration;
+        private readonly string _apiUrl;
+        private readonly JsonSerializerOptions _jsonOptions;
 
         /// <summary>
-        /// Constructor que inicializa el cliente HTTP y la configuración.
+        /// Constructor que inicializa el servicio con la URL de la API de Weaviate.
         /// </summary>
-        /// <param name="httpClient">Cliente HTTP para realizar solicitudes.</param>
-        /// <param name="configuration">Configuración de la aplicación.</param>
+        /// <param name="httpClient">Cliente HTTP inyectado.</param>
+        /// <param name="configuration">Configuración de la aplicación para obtener la URL.</param>
         public WeaviateService(HttpClient httpClient, IConfiguration configuration)
         {
             _httpClient = httpClient;
-            _configuration = configuration;
+            _apiUrl = configuration["Weaviate:ApiUrl"] ?? throw new ArgumentNullException("Weaviate:ApiUrl", "La URL de Weaviate no está configurada.");
+
+            // Configuración de serialización JSON
+            _jsonOptions = new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                WriteIndented = false
+            };
         }
 
         /// <summary>
-        /// Agrega un videojuego a la base de datos Weaviate.
+        /// Obtiene recomendaciones basadas en los juegos que un usuario ha calificado.
         /// </summary>
-        /// <param name="title">Título del videojuego.</param>
-        /// <param name="description">Descripción del videojuego.</param>
-        /// <param name="releaseDate">Fecha de lanzamiento.</param>
-        /// <param name="coverUrl">URL de la portada.</param>
-        /// <param name="developer">Desarrollador del videojuego.</param>
-        /// <param name="platform">Plataforma del videojuego.</param>
-        /// <param name="rating">Calificación del videojuego.</param>
-        /// <param name="categoryId">Identificador de la categoría.</param>
-        /// <returns>Un booleano indicando el éxito o fallo de la operación.</returns>
-        public async Task<bool> AddGameToWeaviateAsync(string title, string description, string releaseDate, string coverUrl, string developer, string platform, float rating, Guid? categoryId)
-        {
-            if (DateTime.TryParse(releaseDate, out DateTime parsedDate))
-            {
-                releaseDate = parsedDate.ToString("yyyy-MM-ddTHH:mm:ssZ");
-            }
-            else
-            {
-                Console.WriteLine("Error: Fecha inválida.");
-                return false;
-            }
-
-            var requestBody = new
-            {
-                @class = "VideoGame",
-                properties = new
-                {
-                    title,
-                    description,
-                    releaseDate,
-                    coverUrl,
-                    developer,
-                    platform,
-                    rating,
-                    categoryId
-                }
-            };
-
-            var content = new StringContent(JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json");
-            var response = await _httpClient.PostAsync("http://localhost:8080/v1/objects", content);
-
-            var responseBody = await response.Content.ReadAsStringAsync();
-            Console.WriteLine($"Weaviate Response: {responseBody}");
-
-            return response.IsSuccessStatusCode;
-        }
-        public async Task<bool> CheckWeaviateConnectionAsync()
+        /// <param name="userId">ID del usuario.</param>
+        /// <returns>JSON con los juegos recomendados.</returns>
+        public async Task<string> GetRecommendations(int userId)
         {
             try
             {
-                var response = await _httpClient.GetAsync("http://localhost:8080/v1/meta");
-                return response.IsSuccessStatusCode;
-            }
-            catch
-            {
-                return false;
-            }
-        }
-
-        /// <summary>
-        /// Obtiene recomendaciones de videojuegos en función de una consulta de búsqueda.
-        /// </summary>
-        /// <param name="searchQuery">Consulta de búsqueda para obtener recomendaciones.</param>
-        /// <returns>Lista de videojuegos recomendados.</returns>
-        public async Task<List<VideoGame>> GetRecommendationsAsync(string searchQuery)
-        {
-            var query = new
-            {
-                query = $@"
-        {{
-            Get {{
-                VideoGame(
-                    nearText: {{ concepts: [""{searchQuery}""] }},
-                    limit: 5
-                ) {{
-                    title
-                    description
-                    coverUrl
-                    developer
-                    platform
-                    rating
-                    categoryId
-                }}
-            }}
-        }}"
-            };
-
-            var content = new StringContent(JsonSerializer.Serialize(query), Encoding.UTF8, "application/json");
-            var response = await _httpClient.PostAsync("http://localhost:8080/v1/graphql", content);
-            var responseBody = await response.Content.ReadAsStringAsync();
-
-            Console.WriteLine("Response from Weaviate: " + responseBody); // Depuración
-
-            try
-            {
-                using var jsonDoc = JsonDocument.Parse(responseBody);
-                var recommendations = new List<VideoGame>();
-
-                foreach (var game in jsonDoc.RootElement.GetProperty("data").GetProperty("Get").GetProperty("VideoGame").EnumerateArray())
+                // Construcción del Query GraphQL
+                var query = new
                 {
-                    recommendations.Add(new VideoGame
-                    {
-                        Title = game.TryGetProperty("title", out var title) && title.ValueKind == JsonValueKind.String
-                            ? title.GetString() ?? "Unknown"
-                            : "Unknown",
+                    query = $@"
+                    {{
+                        Get {{
+                            GameRecommendation(where: {{ userId: {userId} }}) {{
+                                gameId
+                                gameTitle
+                                reason
+                                createdAt
+                            }}
+                        }}
+                    }}"
+                };
 
-                        Description = game.TryGetProperty("description", out var description) && description.ValueKind == JsonValueKind.String
-                            ? description.GetString() ?? "No description available"
-                            : "No description available",
+                var content = new StringContent(JsonSerializer.Serialize(query, _jsonOptions), Encoding.UTF8, "application/json");
 
-                        CoverUrl = game.TryGetProperty("coverUrl", out var coverUrl) && coverUrl.ValueKind == JsonValueKind.String
-                            ? coverUrl.GetString() ?? ""
-                            : "",
+                // Enviar la solicitud a Weaviate
+                var response = await _httpClient.PostAsync(_apiUrl, content);
 
-                        Developer = game.TryGetProperty("developer", out var developer) && developer.ValueKind == JsonValueKind.String
-                            ? developer.GetString() ?? "Unknown"
-                            : "Unknown",
-
-                        Platform = game.TryGetProperty("platform", out var platform) && platform.ValueKind == JsonValueKind.String
-                            ? platform.GetString() ?? "Unknown"
-                            : "Unknown",
-
-                        Rating = game.TryGetProperty("rating", out var rating) && rating.ValueKind == JsonValueKind.Number
-                            ? (float)rating.GetDouble()
-                            : 0.0f,
-
-                        Category_id = game.TryGetProperty("categoryId", out var category) && category.ValueKind == JsonValueKind.String
-                            ? Guid.Parse(category.GetString() ?? Guid.Empty.ToString())
-                            : (Guid?)null
-                    });
+                if (!response.IsSuccessStatusCode)
+                {
+                    return $"Error al obtener recomendaciones: {response.StatusCode}";
                 }
 
-                return recommendations;
+                return await response.Content.ReadAsStringAsync();
             }
             catch (Exception ex)
             {
-                Console.WriteLine("JSON Parsing Error: " + ex.Message);
-                return new List<VideoGame>();
+                return $"Error en WeaviateService: {ex.Message}";
             }
         }
-
-
     }
 }

@@ -1,8 +1,10 @@
-using Dapper;
-using SmartGameCatalog.API.Data;
-using SmartGameCatalog.API.Models;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using SmartGameCatalog.API.Data;
+using SmartGameCatalog.API.Model;
 
 namespace SmartGameCatalog.API.Repositories
 {
@@ -11,37 +13,100 @@ namespace SmartGameCatalog.API.Repositories
     /// </summary>
     public class RecommendationRepository
     {
-        private readonly Database _database;
+        private readonly SmartGameDbContext _context;
 
-        public RecommendationRepository(Database database)
+        /// <summary>
+        /// Constructor que inyecta el contexto de la base de datos.
+        /// </summary>
+        public RecommendationRepository(SmartGameDbContext context)
         {
-            _database = database;
+            _context = context;
         }
 
         /// <summary>
-        /// Obtiene la lista de todas las recomendaciones registradas en la base de datos.
+        /// Obtiene todas las recomendaciones registradas.
         /// </summary>
-        /// <returns>Lista de recomendaciones generadas para los usuarios.</returns>
-        public async Task<IEnumerable<Recommendation>> GetRecommendationsAsync()
+        public async Task<IEnumerable<Recommendation>> GetAll()
         {
-            using var connection = _database.CreateConnection();
-            return await connection.QueryAsync<Recommendation>(
-                "SELECT id, user_id, recommended_videogame_id, reason, created_at FROM recommendations"
-            );
+            return await _context.Recommendations.ToListAsync();
         }
 
         /// <summary>
-        /// Registra una nueva recomendación en la base de datos.
+        /// Obtiene una recomendación por su ID.
         /// </summary>
-        /// <param name="recommendation">Objeto que representa la recomendación a registrar.</param>
-        /// <returns>Número de filas afectadas.</returns>
-        public async Task<int> AddRecommendationAsync(Recommendation recommendation)
+        public async Task<Recommendation?> GetById(int id)
         {
-            using var connection = _database.CreateConnection();
-            var query = @"
-                INSERT INTO recommendations (id, user_id, recommended_videogame_id, reason, created_at) 
-                VALUES (@Id_Recommendation, @Id_User, @Id_Recommended_VideoGame, @Reason, @Created_At)";
-            return await connection.ExecuteAsync(query, recommendation);
+            return await _context.Recommendations.FindAsync(id);
+        }
+
+        /// <summary>
+        /// Agrega una nueva recomendación a la base de datos.
+        /// </summary>
+        public async Task<Recommendation?> Create(Recommendation recommendation)
+        {
+            if (recommendation == null)
+            {
+                throw new ArgumentNullException(nameof(recommendation), "La recomendación no puede ser nula.");
+            }
+
+            try
+            {
+                _context.Recommendations.Add(recommendation);
+                await _context.SaveChangesAsync();
+                return recommendation;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al crear la recomendación: {ex.Message}");
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Actualiza la información de una recomendación existente.
+        /// </summary>
+        public async Task<bool> Update(Recommendation recommendation)
+        {
+            if (recommendation == null)
+            {
+                throw new ArgumentNullException(nameof(recommendation), "La recomendación no puede ser nula.");
+            }
+
+            try
+            {
+                _context.Recommendations.Update(recommendation);
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al actualizar la recomendación: {ex.Message}");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Elimina una recomendación de la base de datos.
+        /// </summary>
+        public async Task<bool> Delete(int id)
+        {
+            var recommendation = await _context.Recommendations.FindAsync(id);
+            if (recommendation == null)
+            {
+                return false; // No se encontró la recomendación
+            }
+
+            try
+            {
+                _context.Recommendations.Remove(recommendation);
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al eliminar la recomendación: {ex.Message}");
+                return false;
+            }
         }
     }
 }
