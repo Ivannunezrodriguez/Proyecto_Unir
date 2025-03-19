@@ -1,12 +1,11 @@
-using System;
-using System.Net.Http;
 using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration;
 
 namespace SmartGameCatalog.API.Services
 {
+    /// <summary>
+    /// Servicio para obtener datos de videojuegos desde IGDB.
+    /// </summary>
     public class IGDBService
     {
         private readonly HttpClient _httpClient;
@@ -20,23 +19,35 @@ namespace SmartGameCatalog.API.Services
             _authService = authService;
         }
 
+        /// <summary>
+        /// Obtiene información de un videojuego por su ID.
+        /// </summary>
         public async Task<string> GetGameById(int gameId)
         {
             var token = await _authService.GetAccessToken();
+
             _httpClient.DefaultRequestHeaders.Clear();
             _httpClient.DefaultRequestHeaders.Add("Client-ID", _configuration["IGDB:ClientId"]);
             _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
 
-            var requestBody = $"fields name, summary, cover.url; where id = {gameId};";
-            var content = new StringContent(requestBody, Encoding.UTF8, "application/json");
+            var requestBody = new { query = $"fields name, summary, cover.url; where id = {gameId};" };
+            var content = new StringContent(JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json");
 
-            var response = await _httpClient.PostAsync("https://api.igdb.com/v4/games", content);
-            if (!response.IsSuccessStatusCode)
+            try
             {
-                throw new Exception($"Error en IGDB: {response.ReasonPhrase}");
-            }
+                var response = await _httpClient.PostAsync("https://api.igdb.com/v4/games", content);
 
-            return await response.Content.ReadAsStringAsync();
+                if (!response.IsSuccessStatusCode)
+                {
+                    throw new HttpRequestException($"Error en IGDB: {response.StatusCode} - {response.ReasonPhrase}");
+                }
+
+                return await response.Content.ReadAsStringAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error en IGDBService: {ex.Message}", ex);
+            }
         }
     }
 }

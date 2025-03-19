@@ -1,19 +1,18 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-
 using SmartGameCatalog.API.Model;
 
-namespace SmartGameCatalog.API.Controllers
-{
 [Route("api/ratings")]
 [ApiController]
 public class RatingsController : ControllerBase
 {
     private readonly RatingRepository _repository;
-    public RatingsController(RatingRepository repository) { _repository = repository; }
+
+    public RatingsController(RatingRepository repository)
+    {
+        _repository = repository;
+    }
 
     /// <summary>
     /// Obtiene la lista de todas las calificaciones registradas.
@@ -27,8 +26,8 @@ public class RatingsController : ControllerBase
     [HttpGet("{id}")]
     public async Task<ActionResult<Rating>> GetById(int id)
     {
-        var entity = await _repository.GetById(id);
-        return entity == null ? NotFound() : Ok(entity);
+        var rating = await _repository.GetById(id);
+        return rating == null ? NotFound() : Ok(rating);
     }
 
     /// <summary>
@@ -47,6 +46,7 @@ public class RatingsController : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(int id, Rating rating)
     {
+        rating.RatingId = id;
         await _repository.Update(rating);
         return NoContent();
     }
@@ -60,5 +60,4 @@ public class RatingsController : ControllerBase
         await _repository.Delete(id);
         return NoContent();
     }
-}
 }

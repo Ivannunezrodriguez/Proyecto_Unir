@@ -1,5 +1,3 @@
-using System;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using SmartGameCatalog.API.Services;
 
@@ -24,8 +22,8 @@ namespace SmartGameCatalog.API.Controllers
         {
             try
             {
-                var response = await _weaviateService.GetRecommendations(userId);
-                return Ok(response);
+                var recommendations = await _weaviateService.GetRecommendations(userId);
+                return Ok(recommendations);
             }
             catch (Exception ex)
             {
