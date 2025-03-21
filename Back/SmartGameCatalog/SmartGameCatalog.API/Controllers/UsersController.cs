@@ -18,7 +18,11 @@ public class UsersController : ControllerBase
     /// Obtiene la lista de todos los usuarios registrados.
     /// </summary>
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<User>>> GetAll() => Ok(await _repository.GetAll());
+    public async Task<ActionResult<IEnumerable<User>>> GetAll()
+    {
+        var users = await _repository.GetAll();
+        return Ok(users);
+    }
 
     /// <summary>
     /// Obtiene un usuario por ID.
@@ -33,12 +37,21 @@ public class UsersController : ControllerBase
     /// <summary>
     /// Registra un nuevo usuario en la base de datos.
     /// </summary>
-    [HttpPost]
-    public async Task<ActionResult<User>> Create(User user)
+
+[HttpPost]
+public async Task<ActionResult<User>> Create(User user)
+{
+    try
     {
         await _repository.Create(user);
         return CreatedAtAction(nameof(GetById), new { id = user.UserId }, user);
     }
+    catch (Exception ex)
+    {
+        return BadRequest(new { message = ex.Message });
+    }
+}
+
 
     /// <summary>
     /// Actualiza la información de un usuario existente.
@@ -48,7 +61,7 @@ public class UsersController : ControllerBase
     {
         user.UserId = id;
         await _repository.Update(user);
-        return NoContent();
+       return Ok(new { message = "Estado actualizado correctamente" });
     }
 
     /// <summary>
@@ -58,6 +71,6 @@ public class UsersController : ControllerBase
     public async Task<IActionResult> Delete(int id)
     {
         await _repository.Delete(id);
-        return NoContent();
+      return Ok(new { message = "Estado borrado correctamente" });
     }
 }

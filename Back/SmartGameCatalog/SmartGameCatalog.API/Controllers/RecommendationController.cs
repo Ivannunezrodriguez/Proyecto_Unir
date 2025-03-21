@@ -48,7 +48,7 @@ public class RecommendationsController : ControllerBase
     {
         recommendation.RecommendationId = id;
         await _repository.Update(recommendation);
-        return NoContent();
+   return Ok(new { message = "Estado actulizado correctamente" });
     }
 
     /// <summary>
@@ -58,6 +58,6 @@ public class RecommendationsController : ControllerBase
     public async Task<IActionResult> Delete(int id)
     {
         await _repository.Delete(id);
-        return NoContent();
+   return Ok(new { message = "Estado borrado correctamente" });
     }
 }

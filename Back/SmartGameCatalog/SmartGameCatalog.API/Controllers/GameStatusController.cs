@@ -33,12 +33,24 @@ public class GameStatusController : ControllerBase
     /// <summary>
     /// Agrega un nuevo estado de juego a la base de datos.
     /// </summary>
-    [HttpPost]
-    public async Task<ActionResult<GameStatus>> Create(GameStatus gameStatus)
+[HttpPost]
+public async Task<IActionResult> SetGameStatus([FromBody] GameStatus request)
+{
+    if (!ModelState.IsValid)
     {
-        await _repository.Create(gameStatus);
-        return CreatedAtAction(nameof(GetById), new { id = gameStatus.StatusId }, gameStatus);
+        return BadRequest(ModelState);
     }
+
+    var validStatuses = new[] { "Wishlist", "Owned", "Playing", "Completed", "Abandoned" };
+    if (!validStatuses.Contains(request.Status))
+        return BadRequest(new { message = "Estado no válido. Usa: Wishlist, Owned, Playing, Completed, Abandoned." });
+
+    await _repository.SetStatus(request.UserId, request.GameId, request.Status);
+    return Ok(new { message = "Estado actualizado correctamente" });
+}
+
+
+
 
     /// <summary>
     /// Actualiza la información de un estado de juego existente.
@@ -48,7 +60,7 @@ public class GameStatusController : ControllerBase
     {
         gameStatus.StatusId = id;
         await _repository.Update(gameStatus);
-        return NoContent();
+    return Ok(new { message = "Estado actualizado correctamente" });
     }
 
     /// <summary>
@@ -58,6 +70,8 @@ public class GameStatusController : ControllerBase
     public async Task<IActionResult> Delete(int id)
     {
         await _repository.Delete(id);
-        return NoContent();
+    return Ok(new { message = "Estado borrado correctamente" });
     }
+
+    
 }

@@ -48,7 +48,7 @@ public class RatingsController : ControllerBase
     {
         rating.RatingId = id;
         await _repository.Update(rating);
-        return NoContent();
+        return Ok(new { message = "Estado actulizado correctamente" });
     }
 
     /// <summary>
@@ -58,6 +58,6 @@ public class RatingsController : ControllerBase
     public async Task<IActionResult> Delete(int id)
     {
         await _repository.Delete(id);
-        return NoContent();
+       return Ok(new { message = "Estado borrado correctamente" });
     }
 }

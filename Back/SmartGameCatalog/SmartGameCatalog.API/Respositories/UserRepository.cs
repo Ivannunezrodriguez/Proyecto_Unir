@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Dapper;
 using SmartGameCatalog.API.Data;
 using SmartGameCatalog.API.Model;
+using SmartGameCatalog.API.Controllers;
 
 public class UserRepository
 {
@@ -13,6 +14,17 @@ public class UserRepository
     {
         _database = database;
     }
+    /// <summary>
+    /// comprueba que el mail y user no esta repetido en la base de datos
+    /// </summary>
+    public async Task<bool> EmailOrUsernameExists(string email, string username)
+    {
+        using var connection = _database.CreateConnection();
+        var query = "SELECT COUNT(1) FROM Users WHERE Email = @Email OR Username = @Username";
+        var count = await connection.ExecuteScalarAsync<int>(query, new { Email = email, Username = username });
+        return count > 0;
+    }
+
 
     /// <summary>
     /// Obtiene todos los usuarios registrados.
@@ -40,11 +52,18 @@ public class UserRepository
     public async Task Create(User user)
     {
         using var connection = _database.CreateConnection();
+
+        if (await EmailOrUsernameExists(user.Email, user.Username))
+        {
+            throw new Exception("El email o el nombre de usuario ya están en uso. Intente con otro.");
+        }
+
         await connection.ExecuteAsync(
             "INSERT INTO Users (Username, Email, Password, Role, CreatedAt) VALUES (@Username, @Email, @Password, @Role, @CreatedAt);",
             user
         );
     }
+
 
     /// <summary>
     /// Actualiza la información de un usuario existente.

@@ -49,7 +49,7 @@ public class GamesController : ControllerBase
     {
         game.GameId = id;
         await _repository.Update(game);
-        return NoContent();
+     return Ok(new { message = "Estado actualizado correctamente" });
     }
 
     /// <summary>
@@ -59,6 +59,6 @@ public class GamesController : ControllerBase
     public async Task<IActionResult> Delete(int id)
     {
         await _repository.Delete(id);
-        return NoContent();
+    return Ok(new { message = "Estado borrado correctamente" });
     }
 }

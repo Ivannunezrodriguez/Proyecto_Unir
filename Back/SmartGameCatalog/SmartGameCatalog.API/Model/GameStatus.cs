@@ -22,10 +22,13 @@ namespace SmartGameCatalog.API.Model
         /// </summary>
         public int GameId { get; set; }
 
-        /// <summary>
-        /// Estado del juego: puede ser "Jugado" o "Deseado".
-        /// </summary>
-        public string Status { get; set; } = string.Empty;
+      /// <summary>
+/// Estado del juego: puede ser "Wishlist" (deseo comprarlo), "Owned" (lo tengo), 
+/// "Playing" (lo estoy jugando), "Completed" (lo terminé o ya no lo jugaré más), 
+/// "Abandoned" (decidí no seguir jugándolo).
+/// </summary>
+public string Status { get; set; } = string.Empty;
+
 
         /// <summary>
         /// Fecha de la última actualización del estado.

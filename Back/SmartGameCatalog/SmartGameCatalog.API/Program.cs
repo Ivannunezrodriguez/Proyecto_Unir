@@ -14,7 +14,6 @@ builder.Services.AddSingleton<Database>();
 // 🔹 Registrar Repositorios usando Dapper en lugar de EF Core
 builder.Services.AddSingleton<UserRepository>();
 builder.Services.AddSingleton<GameRepository>();
-builder.Services.AddSingleton<FavoriteRepository>();
 builder.Services.AddSingleton<RatingRepository>();
 builder.Services.AddSingleton<GameStatusRepository>();
 builder.Services.AddSingleton<RecommendationRepository>();
