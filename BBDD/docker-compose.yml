@@ -36,7 +36,7 @@ services:
       QUERY_DEFAULTS_LIMIT: "10"
       ENABLE_MODULES: "text2vec-huggingface"
       DEFAULT_VECTORIZER_MODULE: "text2vec-huggingface"
-      HUGGINGFACE_APIKEY: "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"  # 🔑 Usa esta variable en vez de HUGGINGFACE_INFERENCE_API
+      HUGGINGFACE_APIKEY: "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"  
       HUGGINGFACE_EMBEDDINGS_MODEL: "sentence-transformers/all-MiniLM-L6-v2"
     ports:
       - "8080:8080"
