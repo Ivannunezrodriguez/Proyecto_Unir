@@ -1,3 +1,5 @@
 [Dd]esktop.ini
 game-tracker-frontend/
 game-tracker-backend/
+*.ini
+Back/SmartGameCatalog/SmartGameCatalog.API/Controllers/desktop.ini
